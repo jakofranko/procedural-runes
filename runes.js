@@ -3,7 +3,7 @@
 // LETTERS are grids of dots, which are connected to each other by random lines
 
 // Editable Variables
-const sentences = 6;      // Number of sentences to write (only affects up until the end of the canvas; vertical overflow is cut off)
+let sentences = 6;      // Number of sentences to write (only affects up until the end of the canvas; vertical overflow is cut off)
 const words = [3, 10];    // {min, max] no. of words per line
 const letters = [2, 10];  // {min, max] no. of letters per word
 
@@ -23,8 +23,6 @@ const height = 500;
 const width = 1000;
 const padding = 100; // Page margins
 
-const exportMode = false; // Set to true to enable PDF exporting of the document; change the filename in setup()
-
 // System Variables
 let finished = false;
 let finishedParagraph = false;
@@ -35,7 +33,7 @@ let cursor_y = padding;
 
 // Utilities
 function random(min, max) {
-  return Math.floor(Math.random() * (max - min) + min);
+  return Math.floor(Math.random() * (max - min + 1)) + min; // min and max are both inclusive
 }
 
 // Setup
@@ -47,7 +45,7 @@ function setup() {
 }
 
 function draw() {
-  if(!finishedParagraph) {
+  while(!finishedParagraph) {
     AddSentence();
   }
 }
@@ -56,7 +54,7 @@ function AddSentence() {
   if(sentences <= 0) {
     finishedParagraph = true;
   }
-  
+
   if(!finished) {
     AddWord();
   } else {
@@ -70,20 +68,20 @@ function AddSentence() {
 
 function AddWord() {
   m_letters = random(letters[0], letters[1]);
-  
+
   if(m_words > 0) {
     m_words--;
   } else if(m_words == 0) {
     finished = true;
   }
-  
+
   for(let i = 0, l = m_letters; i < l; i ++) {
-    
+
     if(cursor_x + (letterWidth * m_letters) >= width - padding) {
       cursor_x = padding;
       cursor_y += lineFeed; // Line feed
     }
-    
+
     if(cursor_y <= height - padding - letterHeight) {
       AddLetter();
     } else {
@@ -91,7 +89,7 @@ function AddWord() {
       return;
     }
   }
-  
+
   cursor_x += letterWidth;
 }
 
@@ -100,31 +98,38 @@ function AddLetter() {
   let ctx = canvas.getContext('2d');
   ctx.strokeStyle = `rgb(0, ${strokeStyle}, 0)`;
   ctx.lineWidth = lineWidth;
-  
+
+  let p = points.map(point => point.slice()); // so that we can manipulate the point grid for just this letter
+
   if(Math.random() < 0.1) {
-    points[3][0] *= 3;
+    p[3][1] *= 3;
   }
-  
+
   for(let i = 0, l = random(2, 4); i < l; i ++) {
-    let firstPoint = random(0, points.length - 1);
-    let secondPoint = random(0, points.length - 1);
-    let thirdPoint = random(0, points.length - 1);
-    
-    if(firstPoint == secondPoint || secondPoint == thirdPoint) { // Reroll if duplicate
-      if(secondPoint == points.length) {
+    let firstPoint = random(0, p.length - 1);
+    let secondPoint = random(0, p.length - 1);
+    let thirdPoint = random(0, p.length - 1);
+
+    while(firstPoint == secondPoint || secondPoint == thirdPoint || secondPoint >= p.length || secondPoint < 0) { // Reroll if duplicate
+      if(secondPoint >= p.length) {
         secondPoint--;
-      } else {
+    } else if(secondPoint < 0) {
         secondPoint++;
+    } else {
+        Math.random() > 0.5 ? secondPoint++ : secondPoint--;
       }
     }
-    
-    const x1 = points[firstPoint][0] + cursor_x + random(-variance, variance);
-    const y1 = points[firstPoint][1] + cursor_y + random(-variance, variance);
-    const x2 = points[secondPoint][0] + cursor_x + random(-variance, variance);
-    const y2 = points[secondPoint][1] + cursor_y + random(-variance, variance);
-    const x3 = points[thirdPoint][0] + cursor_x + random(-variance, variance);
-    const y3 = points[thirdPoint][1] + cursor_y + random(-variance, variance);
-    
+
+    if(!p[secondPoint])
+        debugger;
+
+    const x1 = p[firstPoint][0] + cursor_x + random(-variance, variance);
+    const y1 = p[firstPoint][1] + cursor_y + random(-variance, variance);
+    const x2 = p[secondPoint][0] + cursor_x + random(-variance, variance);
+    const y2 = p[secondPoint][1] + cursor_y + random(-variance, variance);
+    const x3 = p[thirdPoint][0] + cursor_x + random(-variance, variance);
+    const y3 = p[thirdPoint][1] + cursor_y + random(-variance, variance);
+
     if(Math.random() < 0.4) { // Draw a linear connection 40% of the time
       ctx.beginPath();
       ctx.moveTo(x1, y1);
@@ -137,12 +142,8 @@ function AddLetter() {
       ctx.bezierCurveTo(x1, y1, x3, y3, x2, y2);
       ctx.stroke();
       ctx.closePath();
-      // curveVertex(points[firstPoint][0] + cursor_x + random(-variance, variance), points[firstPoint][1] + cursor_y + random(-variance, variance));
-      // curveVertex(points[secondPoint][0] + cursor_x + random(-variance, variance), points[secondPoint][1] + cursor_y + random(-variance, variance));
-      // curveVertex(points[thirdPoint][0] + cursor_x + random(-variance, variance), points[thirdPoint][1] + cursor_y + random(-variance, variance));
-      // curveVertex(points[firstPoint][0] + cursor_x + random(-variance, variance), points[firstPoint][1] + cursor_y + random(-variance, variance));
     }
   }
-  
+
   cursor_x += letterWidth;
 }

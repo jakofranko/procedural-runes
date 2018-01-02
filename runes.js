@@ -7,10 +7,6 @@ let sentences = 6;      // Number of sentences to write (only affects up until t
 const words = [3, 10];    // {min, max] no. of words per line
 const letters = [2, 10];  // {min, max] no. of letters per word
 
-const background = 29;    // RGB value of the background
-const strokeStyle = 220;       // RGB value of the writing
-const lineWidth = 1;   // Weight (in pixels) of the writing
-
 const points = [[0, 0], [10, 0], [20, 0], [0, 10], [10, 10], [20, 30]]; // This defines the 'grid' for each letter, where [0, 0] is the top left corner
 const variance = 1; // How far line start/end points should deviate from the grid
 
@@ -38,10 +34,22 @@ function random(min, max) {
 
 // Setup
 function setup() {
-  let canvas = document.getElementById("sheet");
-  canvas.width = width;
-  canvas.height = height;
-  canvas.style.backgroundColor = `rgb(0, ${background}, 0)`;
+    // const background = 29;    // RGB value of the background
+    // const strokeStyle = 220;       // RGB value of the writing
+    const dark = `${random(100, 255)}, ${random(100, 255)}, ${random(100, 255)}`;
+    const light = `${random(0, 40)}, ${random(0, 40)}, ${random(0, 40)}`;
+    const colorScheme = Math.random() < 0.5;
+    const lineWidth = 1;   // Weight (in pixels) of the writing
+    let canvas = document.getElementById("sheet");
+    let ctx = canvas.getContext('2d');
+
+    canvas.width = width;
+    canvas.height = height;
+    canvas.style.backgroundColor = colorScheme ? `rgb(${light})` : `rgb(${dark})`;
+    document.body.style.backgroundColor = colorScheme ? `rgb(${light})` : `rgb(${dark})`;
+
+    ctx.strokeStyle = colorScheme ? `rgb(${dark})` : `rgb(${light})`;
+    ctx.lineWidth = lineWidth;
 }
 
 function draw() {
@@ -96,8 +104,6 @@ function AddWord() {
 function AddLetter() {
   const canvas = document.getElementById("sheet");
   let ctx = canvas.getContext('2d');
-  ctx.strokeStyle = `rgb(0, ${strokeStyle}, 0)`;
-  ctx.lineWidth = lineWidth;
 
   let p = points.map(point => point.slice()); // so that we can manipulate the point grid for just this letter
 

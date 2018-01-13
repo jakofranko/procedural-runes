@@ -13,13 +13,43 @@
                 -ms-transform: translate(-50%, -50%);
             }
         </style>
+        <script src="dat.gui.min.js" type="text/javascript"></script>
     </head>
     <body>
         <canvas id="sheet"></canvas>
         <script type="text/javascript" src="runes.js"></script>
         <script>
-            setup();
-            draw();
+            let options = {
+                height: 500,
+                width: 1000,
+                padding: 100,
+                sentences: 6,
+                variance: 1,
+                letterWidth: 20,
+                letterHeight: 20,
+                wordSpacing: 40,
+                lineFeed: 50,
+            }
+            const gui = new dat.GUI();
+
+            function newRunes() {
+                let runes = new Runes(options);
+                runes.init();
+                runes.draw();
+            }
+
+            // Add options to dat.gui
+            gui.add(options, "height", 100, 1000).step(1).onFinishChange(newRunes);
+            gui.add(options, "width", 100, 1000).step(1).onFinishChange(newRunes);
+            gui.add(options, "padding", 0, 200).step(1).onFinishChange(newRunes);
+            gui.add(options, "sentences", 2, 8).step(1).onFinishChange(newRunes);
+            gui.add(options, "variance", 0, 5).step(1).onFinishChange(newRunes);
+            gui.add(options, "letterWidth", 10, 30).step(1).onFinishChange(newRunes);
+            gui.add(options, "letterHeight", 10, 30).step(1).onFinishChange(newRunes);
+            gui.add(options, "wordSpacing", 10, 100).step(1).onFinishChange(newRunes);
+            gui.add(options, "lineFeed", 10, 100).step(1).onFinishChange(newRunes);
+
+            newRunes();
         </script>
     </body>
 </html>
